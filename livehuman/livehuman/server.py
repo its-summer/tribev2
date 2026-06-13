@@ -13,7 +13,7 @@ from pydantic import BaseModel
 
 from .market import ensure_market_active, load_markets, personas_by_market
 from .persona import list_personas
-from .pipeline import LivePipeline, rtmp_url_from_env
+from .pipeline import LivePipeline
 
 PERSONAS_DIR = Path(os.environ.get("PERSONAS_DIR", Path(__file__).parent.parent / "personas"))
 
@@ -75,11 +75,11 @@ async def start_stream(req: StartRequest) -> dict:
     except (PermissionError, KeyError) as e:
         raise HTTPException(403, str(e)) from e
 
-    pipeline = LivePipeline(
-        persona,
-        rtmp_url=rtmp_url_from_env(),
-        tiktok_unique_id=req.tiktok_unique_id,
-    )
+    # 推流目标: 请求显式指定 > persona.stream > 环境变量
+    try:
+        pipeline = LivePipeline(persona, tiktok_unique_id=req.tiktok_unique_id)
+    except RuntimeError as e:  # 既无 persona.stream 也无环境变量
+        raise HTTPException(400, str(e)) from e
     await pipeline.start()
     _current, _current_name = pipeline, req.persona
     return {"status": "started", "persona": req.persona}

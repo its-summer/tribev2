@@ -37,16 +37,34 @@ def rtmp_url_from_env() -> str:
     return f"{url.rstrip('/')}/{key}" if key else url
 
 
+def resolve_rtmp_url(persona: Persona) -> str:
+    """优先用 persona 自带的推流地址, 缺省回退到环境变量."""
+    if persona.stream and (url := persona.stream.full_rtmp_url()):
+        return url
+    return rtmp_url_from_env()
+
+
+def resolve_tiktok_id(persona: Persona) -> str | None:
+    """优先用 persona 自带的监听账号, 缺省回退到环境变量."""
+    if persona.stream and persona.stream.tiktok_unique_id:
+        return persona.stream.tiktok_unique_id
+    return os.environ.get("TIKTOK_UNIQUE_ID") or None
+
+
 class LivePipeline:
     def __init__(
         self,
         persona: Persona,
-        rtmp_url: str,
+        rtmp_url: str | None = None,
         tiktok_unique_id: str | None = None,
     ):
+        # 显式传参优先; 否则从 persona.stream 解析, 再回退环境变量
         self.persona = persona
         self.generator = ContentGenerator(persona)
-        self.streamer = RtmpStreamer(persona.avatar_video, rtmp_url)
+        self.streamer = RtmpStreamer(
+            persona.avatar_video, rtmp_url or resolve_rtmp_url(persona)
+        )
+        tiktok_unique_id = tiktok_unique_id or resolve_tiktok_id(persona)
         self.listener = (
             TikTokCommentListener(tiktok_unique_id) if tiktok_unique_id else None
         )
@@ -104,11 +122,8 @@ class LivePipeline:
 async def main(persona_path: str) -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     persona = load_persona(persona_path)
-    pipeline = LivePipeline(
-        persona,
-        rtmp_url=rtmp_url_from_env(),
-        tiktok_unique_id=os.environ.get("TIKTOK_UNIQUE_ID") or None,
-    )
+    # 推流目标与监听账号自动解析: persona.stream 优先, 回退环境变量
+    pipeline = LivePipeline(persona)
     await pipeline.start()
     try:
         while pipeline.streamer.alive:

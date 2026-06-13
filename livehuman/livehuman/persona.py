@@ -32,6 +32,29 @@ class SourceInfo(BaseModel):
     created_at: str = ""
 
 
+class StreamConfig(BaseModel):
+    """该数字人的推流目标与互动账号.
+
+    每个市场的数字人推到各自的 TikTok 账号, 用各自的推流密钥, 故凭据归属到
+    persona 而非全局。推流地址是"整体回退": persona 未配置 rtmp_url 时, 整个
+    推流目标回退到环境变量 (而非逐字段合并), 避免出现缺密钥的半截地址。
+    监听账号 tiktok_unique_id 单独回退。见 pipeline.resolve_*。
+
+    安全提示: stream_key 是敏感凭据。若 persona YAML 会进版本库, 不要写死密钥
+    —— 把密钥放进 rtmp_url 的环境变量, 或用密钥管理在运行时注入。
+    """
+
+    rtmp_url: str = Field(default="", description="TikTok LIVE 推流服务器地址")
+    stream_key: str = Field(default="", description="推流密钥 (敏感, 建议用密钥管理注入)")
+    tiktok_unique_id: str = Field(default="", description="评论监听的 TikTok 账号 @unique_id")
+
+    def full_rtmp_url(self) -> str:
+        """拼出完整推流地址; 未配置 rtmp_url 时返回空串 (交由上层回退)."""
+        if not self.rtmp_url:
+            return ""
+        return f"{self.rtmp_url.rstrip('/')}/{self.stream_key}" if self.stream_key else self.rtmp_url
+
+
 class Persona(BaseModel):
     name: str
     description: str = Field(description="人设描述, 会进入系统提示词")
@@ -51,6 +74,9 @@ class Persona(BaseModel):
     avatar_video: str = Field(description="形象循环视频路径 (mp4)")
     style_notes: str = Field(default="", description="语言风格补充, 如口头禅、节奏")
     market: str = Field(default="", description="归属市场代码, 如 jp / us (见 markets.yaml)")
+    stream: StreamConfig | None = Field(
+        default=None, description="推流目标与监听账号; 缺省回退到环境变量"
+    )
     source: SourceInfo | None = Field(default=None, description="员工克隆数字人的来源记录")
 
     def voice_for(self, language: str) -> str:

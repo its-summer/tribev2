@@ -98,6 +98,23 @@ python -m livehuman.creation.builder \
 开播流程内置市场护栏：数字人必须归属一个已激活市场，否则 `pipeline` 报错、
 控制台返回 403。员工数字人在生成时通过 `--market` 归属到对应市场（见上一节）。
 
+### 推流凭据归属到数字人
+
+每个市场的数字人推到各自的 TikTok 账号、用各自的推流密钥，所以推流凭据下沉
+到 persona 配置（而非一对全局环境变量）。在 persona YAML 里：
+
+```yaml
+stream:
+  rtmp_url: rtmp://jp-live.tiktok.com/live   # 该数字人的推流服务器
+  stream_key: ${JP_STREAM_KEY}               # 建议用密钥管理注入, 勿写死进版本库
+  tiktok_unique_id: "@yuki_jp"               # 评论监听账号
+```
+
+解析优先级：**控制台请求显式指定 > persona.stream > 环境变量**。未配置 `stream`
+的数字人（如演示用的 aria）继续走 `TIKTOK_RTMP_URL` / `TIKTOK_STREAM_KEY` /
+`TIKTOK_UNIQUE_ID` 环境变量，完全向后兼容。这样单实例下切换数字人无需改环境
+变量，将来转多路并发时每路天然有自己的推流目标，迁移几乎零改动。
+
 ## 快速开始
 
 ```bash
