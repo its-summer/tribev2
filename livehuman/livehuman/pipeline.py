@@ -22,7 +22,6 @@ from .interaction.tiktok_listener import TikTokCommentListener
 from .persona import Persona, load_persona
 from .stream.rtmp import RtmpStreamer
 from .tts import router as tts
-from .tts.edge import silence
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +51,17 @@ def resolve_tiktok_id(persona: Persona) -> str | None:
     return os.environ.get("TIKTOK_UNIQUE_ID") or None
 
 
+def build_performer(persona: Persona):
+    """口型同步: persona.lipsync != none 时, 解码形象帧并构建 Performer; 否则返回 None。"""
+    if persona.lipsync == "none":
+        return None
+    from .creation.lipsync import Performer, build_driver, load_avatar_frames
+
+    frames = load_avatar_frames(persona.avatar_video)
+    driver = build_driver(persona.lipsync, frames)
+    return Performer(driver)
+
+
 class LivePipeline:
     def __init__(
         self,
@@ -63,7 +73,9 @@ class LivePipeline:
         self.persona = persona
         self.generator = ContentGenerator(persona)
         self.streamer = RtmpStreamer(
-            persona.avatar_video, rtmp_url or resolve_rtmp_url(persona)
+            persona.avatar_video,
+            rtmp_url or resolve_rtmp_url(persona),
+            performer=build_performer(persona),
         )
         tiktok_unique_id = tiktok_unique_id or resolve_tiktok_id(persona)
         self.listener = (
@@ -99,9 +111,8 @@ class LivePipeline:
                     text = await self.generator.next_script_segment()
                 logger.info("口播: %s", text)
                 pcm = await tts.synthesize(self.persona, text, language)
-                self.streamer.enqueue_pcm(pcm)
-                # 段落间留一点自然停顿
-                self.streamer.enqueue_pcm(silence(0.8))
+                # 循环模式入音频队列并补停顿; 帧驱动模式交 performer 渲染口型
+                self.streamer.enqueue_speech(pcm)
             except Exception:
                 logger.exception("生成/合成失败, %s 秒后重试", 5)
                 await asyncio.sleep(5)
@@ -146,17 +157,16 @@ async def dry_run(
     generator = ContentGenerator(persona)
     streamer = RtmpStreamer(
         persona.avatar_video, out_file, container="mp4",
-        auto_restart=False, duration=seconds,
+        auto_restart=False, duration=seconds, performer=build_performer(persona),
     )
-    logger.info("dry-run 开始 (%ss) -> %s", seconds, out_file)
+    logger.info("dry-run 开始 (%ss, lipsync=%s) -> %s", seconds, persona.lipsync, out_file)
     await streamer.start()
     try:
         for _ in range(segments):
             text = await generator.next_script_segment()
             logger.info("dry-run 口播: %s", text)
             pcm = await tts.synthesize(persona, text, persona.primary_language)
-            streamer.enqueue_pcm(pcm)
-            streamer.enqueue_pcm(silence(0.5))
+            streamer.enqueue_speech(pcm)
         # 等限时录制结束
         while streamer.alive:
             await asyncio.sleep(0.5)

@@ -74,6 +74,10 @@ class Persona(BaseModel):
     avatar_video: str = Field(description="形象循环视频路径 (mp4)")
     style_notes: str = Field(default="", description="语言风格补充, 如口头禅、节奏")
     market: str = Field(default="", description="归属市场代码, 如 jp / us (见 markets.yaml)")
+    lipsync: Literal["none", "musetalk"] = Field(
+        default="none",
+        description="none=形象视频循环 (口型不动); musetalk=实时口型同步 (需 GPU+权重)",
+    )
     stream: StreamConfig | None = Field(
         default=None, description="推流目标与监听账号; 缺省回退到环境变量"
     )

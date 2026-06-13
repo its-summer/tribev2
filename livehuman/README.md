@@ -158,6 +158,32 @@ python -m livehuman.preflight personas/yuki.yaml
 python -m livehuman.pipeline personas/yuki.yaml --dry-run 20 --out dryrun.mp4
 ```
 
+### 口型同步 (lip-sync)
+
+数字人有两种画面模式，由 persona 的 `lipsync` 字段切换：
+
+- `none`（默认）：形象视频循环，口型不动；
+- `musetalk`：实时口型同步，画面逐帧由模型按 TTS 语音生成，观感接近本人说话。
+
+帧驱动管线（模型无关的那一半）已搭好并验证：用 ffmpeg 把形象视频解码为定尺
+帧，`Performer` 后台预渲染、播出端按 1/fps 锁步取出**画面帧 + 对齐音频**，经
+两路管道喂进 ffmpeg 合成——音画严格同步，渲染时延与播出节奏解耦。
+
+接入真实模型只需注册一个推理函数（不改其余代码）：
+
+```python
+from livehuman.creation.lipsync import register_musetalk
+
+def musetalk_infer(ref_frames, speech_pcm, w, h, fps):
+    # 封装一次 MuseTalk 前向: 参考帧 + 语音 -> 等长口型帧 (BGR24, 定尺)
+    ...
+register_musetalk(musetalk_infer)
+```
+
+未注册时 `lipsync: musetalk` 会**安全回退到静帧**并告警，不会崩。需 GPU + 权重。
+720p@25fps 实时编码对算力有要求，若日志提示"写缓冲偏高"，在部署侧降码率或用
+GPU 编码（`h264_nvenc` 等）。
+
 ### 稳定性
 
 直播推流内置崩溃自愈：ffmpeg 意外退出会自动重启并带指数退避，已生成的口播
