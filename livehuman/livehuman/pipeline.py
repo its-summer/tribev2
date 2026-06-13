@@ -14,6 +14,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
+import sys
 from pathlib import Path
 
 from .content.generator import ContentGenerator
@@ -132,13 +133,54 @@ async def main(persona_path: str) -> None:
         await pipeline.stop()
 
 
-if __name__ == "__main__":
-    import sys
+async def dry_run(
+    persona_path: str, seconds: float = 20, out_file: str = "dryrun.mp4", segments: int = 2
+) -> None:
+    """本地实跑: 走完 内容生成 -> TTS -> ffmpeg 合成 整条链路, 录成本地 mp4。
 
-    if len(sys.argv) != 2:
-        print(f"用法: python -m livehuman.pipeline <persona.yaml>", file=sys.stderr)
+    不推 TikTok、不经市场护栏 —— 用来在上线前确认链路真能跑通、音画正常。
+    需要 ANTHROPIC_API_KEY (内容), 以及 persona 对应的 TTS 凭据。
+    """
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+    persona = load_persona(persona_path)
+    generator = ContentGenerator(persona)
+    streamer = RtmpStreamer(
+        persona.avatar_video, out_file, container="mp4",
+        auto_restart=False, duration=seconds,
+    )
+    logger.info("dry-run 开始 (%ss) -> %s", seconds, out_file)
+    await streamer.start()
+    try:
+        for _ in range(segments):
+            text = await generator.next_script_segment()
+            logger.info("dry-run 口播: %s", text)
+            pcm = await tts.synthesize(persona, text, persona.primary_language)
+            streamer.enqueue_pcm(pcm)
+            streamer.enqueue_pcm(silence(0.5))
+        # 等限时录制结束
+        while streamer.alive:
+            await asyncio.sleep(0.5)
+    finally:
+        await streamer.stop()
+    logger.info("dry-run 完成, 用播放器检查音画: %s", out_file)
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description="启动直播 / 本地 dry-run")
+    parser.add_argument("persona", help="persona YAML 路径")
+    parser.add_argument(
+        "--dry-run", type=float, metavar="SECONDS",
+        help="本地录制 N 秒到 mp4, 不推 TikTok (验证链路用)",
+    )
+    parser.add_argument("--out", default="dryrun.mp4", help="dry-run 输出文件")
+    args = parser.parse_args()
+
+    if not Path(args.persona).exists():
+        print(f"找不到 persona 文件: {args.persona}", file=sys.stderr)
         sys.exit(1)
-    if not Path(sys.argv[1]).exists():
-        print(f"找不到 persona 文件: {sys.argv[1]}", file=sys.stderr)
-        sys.exit(1)
-    asyncio.run(main(sys.argv[1]))
+    if args.dry_run:
+        asyncio.run(dry_run(args.persona, seconds=args.dry_run, out_file=args.out))
+    else:
+        asyncio.run(main(args.persona))

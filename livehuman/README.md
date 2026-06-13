@@ -141,6 +141,29 @@ uvicorn livehuman.server:app --host 0.0.0.0 --port 8000
 
 需要系统已安装 `ffmpeg`。
 
+### 开播前预检与本地实跑
+
+上线前先跑预检，把配置/环境问题一次性查出来（ffmpeg、形象视频、语音配置、
+市场状态、推流目标、API Key）：
+
+```bash
+python -m livehuman.preflight personas/yuki.yaml
+# 任一项 FAIL 退出码非 0, 可放进启动脚本/CI 做开播门禁
+```
+
+再做本地 dry-run，**不推 TikTok**，把 内容生成 → TTS → ffmpeg 合成 整条链路
+录成本地 mp4，亲眼确认音画正常：
+
+```bash
+python -m livehuman.pipeline personas/yuki.yaml --dry-run 20 --out dryrun.mp4
+```
+
+### 稳定性
+
+直播推流内置崩溃自愈：ffmpeg 意外退出会自动重启并带指数退避，已生成的口播
+音频跨重启保留不丢；连续多次"启动即崩"（疑似配置错误）才放弃并记录原因。
+这样网络抖动或 ffmpeg 偶发崩溃不会中断 7×24 直播。
+
 > 示例数字人 `personas/aria.yaml` 是个英文虚拟形象, 仅用于测试内容生成与
 > 语音合成; 它不归属任何市场, 因此当前不能开播 (市场护栏会拦截)——这正是
 > 预期行为: 只开放日本时, 非日本市场的数字人不应上线。
