@@ -20,7 +20,8 @@ from .content.generator import ContentGenerator
 from .interaction.tiktok_listener import TikTokCommentListener
 from .persona import Persona, load_persona
 from .stream.rtmp import RtmpStreamer
-from .tts import edge as tts
+from .tts import router as tts
+from .tts.edge import silence
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +60,7 @@ class LivePipeline:
         logger.info("数字人「%s」开播", self.persona.name)
 
     async def _run(self) -> None:
-        voice = self.persona.voice_for(self.persona.primary_language)
+        language = self.persona.primary_language
         while self.streamer.alive:
             if self.streamer.pending_audio_seconds > BUFFER_LOW_SECONDS:
                 await asyncio.sleep(IDLE_POLL_SECONDS)
@@ -74,10 +75,10 @@ class LivePipeline:
                 else:
                     text = await self.generator.next_script_segment()
                 logger.info("口播: %s", text)
-                pcm = await tts.synthesize(text, voice)
+                pcm = await tts.synthesize(self.persona, text, language)
                 self.streamer.enqueue_pcm(pcm)
                 # 段落间留一点自然停顿
-                self.streamer.enqueue_pcm(tts.silence(0.8))
+                self.streamer.enqueue_pcm(silence(0.8))
             except Exception:
                 logger.exception("生成/合成失败, %s 秒后重试", 5)
                 await asyncio.sleep(5)
