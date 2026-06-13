@@ -8,13 +8,17 @@
   5. 风格提炼   Claude 从文字稿提炼人设/说话风格/产品知识点
   6. 生成配置   写出 personas/<id>.yaml, 即可用现有 pipeline 开播
 
+本土员工策略: 尽量让目标市场的母语员工用母语录制。克隆音色会带录制者
+的口音, 母语录制 → 该市场直播最地道, 故母语默认即数字人的主直播语言。
+
 用法:
+  # 西班牙本土员工录西语讲解 -> 面向西语市场直播
   python -m livehuman.creation.builder \\
-      --video recordings/zhangwei.mp4 \\
-      --name 张伟 --employee-id E1024 \\
-      --consent-doc consents/zhangwei_authorization.pdf \\
-      --languages zh en es \\
-      --out personas/zhangwei.yaml
+      --video recordings/lucia.mp4 \\
+      --name Lucía --employee-id E2031 \\
+      --consent-doc consents/lucia_authorization.pdf \\
+      --native-language es \\
+      --out personas/lucia.yaml
 """
 
 from __future__ import annotations
@@ -38,9 +42,10 @@ def build_digital_human(
     name: str,
     consent_doc: str | Path,
     out_yaml: str | Path,
+    native_language: str,
     employee_id: str = "",
     languages: list[str] | None = None,
-    primary_language: str = "zh",
+    primary_language: str | None = None,
     transcript: str | None = None,
     loop_start: float = 0.0,
     loop_duration: float = 20.0,
@@ -50,6 +55,13 @@ def build_digital_human(
     video, out_yaml = Path(video), Path(out_yaml)
     if not video.exists():
         raise FileNotFoundError(f"找不到录制视频: {video}")
+
+    # 本土员工用母语录制: 克隆音色会带母语口音, 故母语即该数字人的主直播语言。
+    # 主语言默认取母语; 语言列表默认仅母语, 但始终包含母语。
+    primary_language = primary_language or native_language
+    languages = languages or [native_language]
+    if native_language not in languages:
+        languages = [native_language, *languages]
 
     # 1. 授权校验 —— 没有员工书面授权一律不生成
     consent_doc = Path(consent_doc)
@@ -84,14 +96,16 @@ def build_digital_human(
 
     # 5. 风格提炼
     print("[4/5] Claude 提炼人设与产品知识点...")
-    draft = analyze_style(name, transcript, extra_notes=extra_notes)
+    draft = analyze_style(
+        name, transcript, native_language=native_language, extra_notes=extra_notes
+    )
 
     # 6. 生成 persona
     persona = Persona(
         name=name,
         description=draft.description,
         primary_language=primary_language,
-        languages=languages or [primary_language],
+        languages=languages,
         voice_provider="elevenlabs",
         voice_clone_id=voice_id,
         topics=draft.topics,
@@ -100,11 +114,17 @@ def build_digital_human(
         source=SourceInfo(
             employee_name=name,
             employee_id=employee_id,
+            native_language=native_language,
             consent_doc=str(consent_doc),
             source_video=str(video),
             created_at=datetime.datetime.now(datetime.UTC).isoformat(timespec="seconds"),
         ),
     )
+    if non_native := [lang for lang in languages if lang != native_language]:
+        print(
+            f"      提示: 克隆音色以母语 {native_language} 最自然; "
+            f"用 {', '.join(non_native)} 直播时会带 {native_language} 口音。"
+        )
     out_yaml.parent.mkdir(parents=True, exist_ok=True)
     out_yaml.write_text(
         yaml.safe_dump(persona.model_dump(), allow_unicode=True, sort_keys=False),
@@ -121,9 +141,19 @@ def main() -> None:
     parser.add_argument("--name", required=True, help="员工姓名 (数字人名)")
     parser.add_argument("--consent-doc", required=True, help="员工书面授权文件路径")
     parser.add_argument("--out", required=True, help="输出 persona YAML 路径")
+    parser.add_argument(
+        "--native-language",
+        required=True,
+        help="员工母语/录制语言, 如 es / ja / zh。默认作为主直播语言, 克隆音色对它最自然",
+    )
     parser.add_argument("--employee-id", default="")
-    parser.add_argument("--languages", nargs="+", default=["zh"], help="直播语言列表")
-    parser.add_argument("--primary-language", default="zh")
+    parser.add_argument(
+        "--languages", nargs="+", default=None,
+        help="直播语言列表 (默认仅母语; 母语始终包含在内)",
+    )
+    parser.add_argument(
+        "--primary-language", default=None, help="主直播语言 (默认取母语)"
+    )
     parser.add_argument("--transcript", help="现成文字稿文件 (跳过 whisper 转写)")
     parser.add_argument("--loop-start", type=float, default=0.0, help="形象循环片段起点(秒)")
     parser.add_argument("--loop-duration", type=float, default=20.0, help="形象循环片段时长(秒)")
@@ -140,6 +170,7 @@ def main() -> None:
             name=args.name,
             consent_doc=args.consent_doc,
             out_yaml=args.out,
+            native_language=args.native_language,
             employee_id=args.employee_id,
             languages=args.languages,
             primary_language=args.primary_language,

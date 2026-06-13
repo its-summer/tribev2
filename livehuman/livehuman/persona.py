@@ -23,6 +23,10 @@ class SourceInfo(BaseModel):
 
     employee_name: str
     employee_id: str = ""
+    native_language: str = Field(
+        default="",
+        description="员工的母语/录制语言。克隆音色会带其口音, 故应作为该数字人的主直播语言",
+    )
     consent_doc: str = Field(description="员工书面授权文件路径")
     source_video: str = Field(description="原始录制视频路径")
     created_at: str = ""

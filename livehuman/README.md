@@ -66,18 +66,24 @@ python -m livehuman.pipeline personas/zhangwei.yaml   # 用员工的数字人开
 ```bash
 export ELEVENLABS_API_KEY=...   # 声音克隆与克隆音色 TTS
 
+# 西班牙本土员工录西语讲解 -> 面向西语市场直播
 python -m livehuman.creation.builder \
-    --video recordings/zhangwei.mp4 \
-    --name 张伟 --employee-id E1024 \
-    --consent-doc consents/zhangwei_authorization.pdf \
-    --languages zh en es \
+    --video recordings/lucia.mp4 \
+    --name Lucía --employee-id E2031 \
+    --consent-doc consents/lucia_authorization.pdf \
+    --native-language es \
     --loop-start 5 --loop-duration 20 \
-    --out personas/zhangwei.yaml
+    --out personas/lucia.yaml
 ```
 
 设计要点：
 
-- **声音**：克隆一次，多语言复用——员工录中文讲解，数字人能用"他自己的声音"说英语、西语、日语（`eleven_multilingual_v2`）。需要私有化时可平替为 GPT-SoVITS / CosyVoice / F5-TTS。
+- **本土员工 + 母语录制**：尽量让目标市场的母语员工用母语录制。克隆音色会带录制者
+  的口音，所以**母语默认就是该数字人的主直播语言**（`--native-language`），一个市场
+  配一位本土员工最地道。详见 [`recordings/README.md`](recordings/README.md)。
+- **声音**：克隆一次、多语言复用——克隆音色经 `eleven_multilingual_v2` 能说 30+ 种语言，
+  但跨语言会带母语口音，适合做次要语言；主力市场用对应母语员工的数字人。需要私有化
+  时可平替为 GPT-SoVITS / CosyVoice / F5-TTS。
 - **形象/表情/动作**：MVP 直接截取员工真实录像做画面循环，表情动作天然是本人的；下一步接 MuseTalk 实时口型同步（接口已预留在 `creation/lipsync.py`），口型即可跟随语音。
 - **知识忠实**：Claude 只从员工实际讲过的内容里提炼话题池，系统提示词同时禁止编造参数/价格/承诺——数字人讲的卖点都是员工本人讲过的。
 - **授权留痕**：persona YAML 里永久记录员工姓名、工号、授权文件、源视频和生成时间，可审计。

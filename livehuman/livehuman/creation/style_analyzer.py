@@ -24,12 +24,20 @@ class PersonaDraft(BaseModel):
 def analyze_style(
     employee_name: str,
     transcript: str,
+    native_language: str = "",
     extra_notes: str = "",
     client: anthropic.Anthropic | None = None,
 ) -> PersonaDraft:
     client = client or anthropic.Anthropic()
+    native_hint = (
+        f"该员工是 {native_language} 母语者, 文字稿即 {native_language} 原话; "
+        f"style_notes 与 topics 请用 {native_language} 书写, 贴合 ta 的母语表达习惯。\n"
+        if native_language
+        else ""
+    )
     prompt = f"""以下是员工「{employee_name}」录制的产品讲解视频的文字稿。
 请据此提炼 ta 的数字人直播人设。
+{native_hint}
 
 要求:
 - description 描述 ta 的身份与气质, 以 ta 的真实讲解为依据, 不要虚构经历;
