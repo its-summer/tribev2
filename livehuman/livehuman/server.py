@@ -11,6 +11,7 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
+from .market import ensure_market_active, load_markets, personas_by_market
 from .persona import list_personas
 from .pipeline import LivePipeline, rtmp_url_from_env
 
@@ -28,12 +29,28 @@ class StartRequest(BaseModel):
     tiktok_unique_id: str | None = None
 
 
+@app.get("/markets")
+def get_markets() -> dict:
+    markets = load_markets()
+    members = personas_by_market(PERSONAS_DIR)
+    return {
+        code: {
+            "name": m.name,
+            "language": m.language,
+            "status": m.status,
+            "personas": members.get(code, []),
+        }
+        for code, m in markets.items()
+    }
+
+
 @app.get("/personas")
 def get_personas() -> dict:
     personas = list_personas(PERSONAS_DIR)
     return {
         name: {
             "name": p.name,
+            "market": p.market,
             "languages": p.languages,
             "topics": p.topics,
         }
@@ -51,8 +68,15 @@ async def start_stream(req: StartRequest) -> dict:
     if req.persona not in personas:
         raise HTTPException(404, f"未找到数字人: {req.persona}")
 
+    persona = personas[req.persona]
+    # 市场护栏: 未开放市场拒绝开播 (返回 403)
+    try:
+        ensure_market_active(persona)
+    except (PermissionError, KeyError) as e:
+        raise HTTPException(403, str(e)) from e
+
     pipeline = LivePipeline(
-        personas[req.persona],
+        persona,
         rtmp_url=rtmp_url_from_env(),
         tiktok_unique_id=req.tiktok_unique_id,
     )

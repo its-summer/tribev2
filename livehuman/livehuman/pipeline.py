@@ -53,11 +53,15 @@ class LivePipeline:
         self._task: asyncio.Task | None = None
 
     async def start(self) -> None:
+        # 市场护栏: 只有归属已激活市场的数字人才能开播
+        from .market import ensure_market_active
+
+        market = ensure_market_active(self.persona)
         await self.streamer.start()
         if self.listener:
             await self.listener.start()
         self._task = asyncio.create_task(self._run())
-        logger.info("数字人「%s」开播", self.persona.name)
+        logger.info("数字人「%s」开播 (市场: %s)", self.persona.name, market.name)
 
     async def _run(self) -> None:
         language = self.persona.primary_language

@@ -8,17 +8,18 @@
   5. 风格提炼   Claude 从文字稿提炼人设/说话风格/产品知识点
   6. 生成配置   写出 personas/<id>.yaml, 即可用现有 pipeline 开播
 
-本土员工策略: 尽量让目标市场的母语员工用母语录制。克隆音色会带录制者
-的口音, 母语录制 → 该市场直播最地道, 故母语默认即数字人的主直播语言。
+本土员工策略: 按市场配本土员工, 让目标市场的母语员工用母语录制。克隆音色
+会带录制者的口音, 母语录制 → 该市场直播最地道, 故市场语言默认即数字人的
+主直播语言。市场在 markets.yaml 登记, 当前仅日本 (jp) 开放。
 
 用法:
-  # 西班牙本土员工录西语讲解 -> 面向西语市场直播
+  # 日本本土员工录日语讲解 -> 面向日本市场直播
   python -m livehuman.creation.builder \\
-      --video recordings/lucia.mp4 \\
-      --name Lucía --employee-id E2031 \\
-      --consent-doc consents/lucia_authorization.pdf \\
-      --native-language es \\
-      --out personas/lucia.yaml
+      --video recordings/yuki.mp4 \\
+      --name Yuki --employee-id E1801 \\
+      --consent-doc consents/yuki_authorization.pdf \\
+      --market jp \\
+      --out personas/yuki.yaml
 """
 
 from __future__ import annotations
@@ -43,6 +44,7 @@ def build_digital_human(
     consent_doc: str | Path,
     out_yaml: str | Path,
     native_language: str,
+    market: str = "",
     employee_id: str = "",
     languages: list[str] | None = None,
     primary_language: str | None = None,
@@ -111,6 +113,7 @@ def build_digital_human(
         topics=draft.topics,
         avatar_video=str(loop),
         style_notes=draft.style_notes,
+        market=market,
         source=SourceInfo(
             employee_name=name,
             employee_id=employee_id,
@@ -142,9 +145,14 @@ def main() -> None:
     parser.add_argument("--consent-doc", required=True, help="员工书面授权文件路径")
     parser.add_argument("--out", required=True, help="输出 persona YAML 路径")
     parser.add_argument(
-        "--native-language",
+        "--market",
         required=True,
-        help="员工母语/录制语言, 如 es / ja / zh。默认作为主直播语言, 克隆音色对它最自然",
+        help="归属市场代码, 如 jp (见 markets.yaml)。母语/主直播语言默认取该市场语言",
+    )
+    parser.add_argument(
+        "--native-language",
+        default=None,
+        help="员工母语/录制语言, 如 ja。默认取所属市场的语言; 仅在与市场语言不同时才需指定",
     )
     parser.add_argument("--employee-id", default="")
     parser.add_argument(
@@ -165,12 +173,19 @@ def main() -> None:
         transcript = Path(args.transcript).read_text(encoding="utf-8")
 
     try:
+        # 母语默认取市场语言; 市场必须已在 markets.yaml 登记
+        from ..market import get_market
+
+        market = get_market(args.market)
+        native_language = args.native_language or market.language
+
         build_digital_human(
             video=args.video,
             name=args.name,
             consent_doc=args.consent_doc,
             out_yaml=args.out,
-            native_language=args.native_language,
+            native_language=native_language,
+            market=market.code,
             employee_id=args.employee_id,
             languages=args.languages,
             primary_language=args.primary_language,
@@ -179,7 +194,7 @@ def main() -> None:
             loop_duration=args.loop_duration,
             extra_notes=args.extra_notes,
         )
-    except (FileNotFoundError, PermissionError, RuntimeError) as e:
+    except (FileNotFoundError, PermissionError, RuntimeError, KeyError) as e:
         print(f"错误: {e}", file=sys.stderr)
         sys.exit(1)
 

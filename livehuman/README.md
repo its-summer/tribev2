@@ -88,6 +88,16 @@ python -m livehuman.creation.builder \
 - **知识忠实**：Claude 只从员工实际讲过的内容里提炼话题池，系统提示词同时禁止编造参数/价格/承诺——数字人讲的卖点都是员工本人讲过的。
 - **授权留痕**：persona YAML 里永久记录员工姓名、工号、授权文件、源视频和生成时间，可审计。
 
+## 按市场开放
+
+数字人按市场组织，市场在 [`markets.yaml`](markets.yaml) 登记。每个市场有
+代码、母语和状态：`active` 才能开播，`coming_soon` 为预留。**目前仅开放日本
+（jp）**，其他市场（美国、西语区、韩国等）已预留，随业务扩张把 `status` 改为
+`active` 即可放开。
+
+开播流程内置市场护栏：数字人必须归属一个已激活市场，否则 `pipeline` 报错、
+控制台返回 403。员工数字人在生成时通过 `--market` 归属到对应市场（见上一节）。
+
 ## 快速开始
 
 ```bash
@@ -95,14 +105,18 @@ cd livehuman
 pip install -r requirements.txt
 
 export ANTHROPIC_API_KEY=sk-ant-...
+export ELEVENLABS_API_KEY=...           # 声音克隆 / 克隆音色 TTS
 export TIKTOK_RTMP_URL="rtmp://..."     # TikTok LIVE 的服务器地址
 export TIKTOK_STREAM_KEY="..."          # 推流密钥
 
-# 准备一段数字人形象循环视频（建议 10~30 秒、720p/1080p、竖屏 9:16）
-cp your_avatar_loop.mp4 assets/aria_loop.mp4
+# 1) 用日本本土员工的讲解视频生成数字人 (归属 jp 市场)
+python -m livehuman.creation.builder \
+    --video recordings/yuki.mp4 --name Yuki \
+    --consent-doc consents/yuki_authorization.pdf \
+    --market jp --out personas/yuki.yaml
 
-# 命令行直接开播（使用示例数字人 Aria）
-python -m livehuman.pipeline personas/aria.yaml
+# 2) 开播 (jp 已激活, 通过市场护栏)
+python -m livehuman.pipeline personas/yuki.yaml
 
 # 或启动控制台 API
 uvicorn livehuman.server:app --host 0.0.0.0 --port 8000
@@ -110,10 +124,15 @@ uvicorn livehuman.server:app --host 0.0.0.0 --port 8000
 
 需要系统已安装 `ffmpeg`。
 
+> 示例数字人 `personas/aria.yaml` 是个英文虚拟形象, 仅用于测试内容生成与
+> 语音合成; 它不归属任何市场, 因此当前不能开播 (市场护栏会拦截)——这正是
+> 预期行为: 只开放日本时, 非日本市场的数字人不应上线。
+
 ### 控制台 API
 
 | 方法 | 路径 | 说明 |
 |---|---|---|
+| `GET` | `/markets` | 列出市场及状态、归属的数字人 |
 | `GET` | `/personas` | 列出所有数字人 |
 | `POST` | `/streams/start` | 启动直播 `{"persona": "aria"}` |
 | `POST` | `/streams/stop` | 停止直播 |

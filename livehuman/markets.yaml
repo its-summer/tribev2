@@ -1,0 +1,24 @@
+# 市场登记表: 按市场配本土员工数字人, 控制开放节奏。
+# status: active = 可开播; coming_soon = 预留, 暂不开放。
+# 目前仅开放日本; 其他市场陆续激活 (改 status 为 active 即可放开)。
+markets:
+  - code: jp
+    name: 日本
+    language: ja
+    status: active
+    note: 首批开放市场。本土日语员工录制日语讲解。
+
+  - code: us
+    name: 美国
+    language: en
+    status: coming_soon
+
+  - code: es
+    name: 西班牙语区
+    language: es
+    status: coming_soon
+
+  - code: kr
+    name: 韩国
+    language: ko
+    status: coming_soon

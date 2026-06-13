@@ -50,6 +50,7 @@ class Persona(BaseModel):
     topics: list[str] = Field(default_factory=list, description="直播话题池")
     avatar_video: str = Field(description="形象循环视频路径 (mp4)")
     style_notes: str = Field(default="", description="语言风格补充, 如口头禅、节奏")
+    market: str = Field(default="", description="归属市场代码, 如 jp / us (见 markets.yaml)")
     source: SourceInfo | None = Field(default=None, description="员工克隆数字人的来源记录")
 
     def voice_for(self, language: str) -> str:
