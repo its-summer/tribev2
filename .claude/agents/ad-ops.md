@@ -23,4 +23,5 @@ model: inherit
 - [ads-mcp](https://github.com/amekala/ads-mcp)、TikTok 官方 Ads MCP：连真实广告账户。
 
 ## 状态
-⏳ 第一阶段技能（`tiktok-ads`）待补充。
+✅ 客户方案：走 `ecommerce-master-plan` 母版，广告以「流量·付费」为主拉引擎（预算×ROAS 阶梯），模板见 `references/derived-ad.md`。
+⏳ 内部物料技能（`tiktok-ads`：账户结构模板/投放审计清单）待补充。

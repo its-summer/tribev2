@@ -22,4 +22,5 @@ model: inherit
 - [nexscope-ai/eCommerce-Skills](https://github.com/nexscope-ai/eCommerce-Skills)：157 个电商 skill，含 listing 优化、定价利润、TikTok Shop 平台指南。
 
 ## 状态
-⏳ 第一阶段技能（`tiktok-store`）待补充。
+✅ 客户方案：走 `ecommerce-master-plan` 母版，店铺以「客单价+转化」为主拉引擎，模板见 `references/derived-store.md`。
+⏳ 内部物料技能（`tiktok-store`：选品打分卡/listing 优化清单/利润测算表）待补充。

@@ -30,7 +30,11 @@
 | 板块 | 派生版状态 | 位置 |
 |---|---|---|
 | 短视频 | ✅ 已有（原理版） | `tiktok-short-video/references/client-proposal-template.md` |
-| 直播 | ✅ 样例已沉淀（脱敏自源方案） | 本 skill `references/example-livestream-mytrex.md`；正式模板待 live-stream-ops 派生 |
-| 达人 / 店铺 / 广告 | ⏳ 待派生 | 按本指南从母版裁剪 |
+| 直播 | ✅ 样例已沉淀（脱敏自源方案） | 本 skill `references/example-livestream-mytrex.md` |
+| 达人 | ✅ 已派生 | 本 skill `references/derived-influencer.md` |
+| 店铺 | ✅ 已派生 | 本 skill `references/derived-store.md` |
+| 广告 | ✅ 已派生 | 本 skill `references/derived-ad.md` |
+
+> 派生版当前统一沉淀在本母版 skill 的 `references/` 下；待某板块成长出自己的完整 skill（如短视频）时，可把对应 `derived-*.md` 迁入该板块 skill 并保留互引用。
 
 > 短视频派生版与母版同源但**早于母版独立成文**：它已包含完整销售心理层，母版在其基础上补齐了 GMV 三引擎方法论。两者保持互引用，不重复维护心理层。

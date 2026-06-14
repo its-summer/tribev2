@@ -22,4 +22,5 @@ model: inherit
 - [sales-skills/sales](https://github.com/sales-skills/sales)：influencer marketing / social listening / 外联 skill。
 
 ## 状态
-⏳ 第一阶段技能（`tiktok-influencer`）待补充。
+✅ 客户方案：走 `ecommerce-master-plan` 母版，达人以「流量·社会证明」为主拉引擎，模板见 `references/derived-influencer.md`。
+⏳ 内部物料技能（`tiktok-influencer`：达人评估打分卡/外联话术库）待补充。
