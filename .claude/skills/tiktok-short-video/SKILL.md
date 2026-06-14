@@ -28,7 +28,7 @@ description: TikTok 带货短视频的选题、钩子、口播/情景脚本、�
 
 - **内部制作物料**：脚本、分镜表、故事板大图、Canva 设计——是给拍摄/剪辑团队的「施工图/素材」，**不直接交付客户**。
 - **客户交付物**：一份结构化**方案文档**——策略 + 排期 + 样片 + 预期 + 报价，客户据此审阅、签字、付款。
-  - 模板：`references/client-proposal-template.md`（**原理版**：含 Part A 设计原理——第一性原理/B2B 买家心理/Cialdini/消费心理学/定价心理/留存——+ Part B 10 节带占位符模板，每节标注对冲哪条心理，文末附调研来源）
+  - 模板：`references/client-proposal-template.md`（**原理版**：含 Part A 设计原理——第一性原理/B2B 买家心理/Cialdini/消费心理学/定价心理/留存——+ Part B 10 节带占位符模板，每节标注对冲哪条心理，文末附调研来源）。这是跨板块母版 `ecommerce-master-plan` 的**短视频派生版**；需要整体增长方案或补全 GMV 三引擎方法论时回看母版。
   - 样例：`references/example-client-proposal-blender.md`（榨汁杯填好版，演示成品）
   - 落地：输出 Markdown，可直接粘贴进飞书 / Notion / Zoom Docs / 腾讯文档；环境若接了对应文档 MCP 可一键生成在线链接。
 

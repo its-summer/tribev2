@@ -17,6 +17,8 @@ model: inherit
 ## 工作方式
 - 缺少品类、客单价、场观目标、主播人设时先问清。
 - 话术贴合目标市场语言与文化，避免功效违规表述。
+- 需要产出**对客直播增长方案**时，走 `ecommerce-master-plan` 技能：直播以「转化率 + 客单价」为主拉引擎，按 `references/derivation-guide.md` 派生，参照 `references/example-livestream-mytrex.md` 样例。
 
 ## 状态
-⏳ 第一阶段技能（`tiktok-live-stream`）待补充；当前可基于本职责直接产出话术与流程。
+✅ 客户方案：可经 `ecommerce-master-plan` 母版派生（已有直播样例）。
+⏳ 内部物料技能（`tiktok-live-stream`：话术/讲解卡/憋单 SOP）待补充；当前可基于本职责直接产出话术与流程。
