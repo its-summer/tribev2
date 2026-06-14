@@ -24,6 +24,14 @@ description: TikTok 带货短视频的选题、钩子、口播/情景脚本、�
 5. **合规自检** → 对照 `references/compliance.md` 逐条过违禁词与夸大宣传。
 6. （可选）**爆款拆解 / 复盘**：拆解对标视频的钩子-节奏-CTA 结构，或按完播/互动/转化复盘迭代。
 
+### 内部物料 vs 客户交付（重要区分）
+
+- **内部制作物料**：脚本、分镜表、故事板大图、Canva 设计——是给拍摄/剪辑团队的「施工图/素材」，**不直接交付客户**。
+- **客户交付物**：一份结构化**方案文档**——策略 + 排期 + 样片 + 预期 + 报价，客户据此审阅、签字、付款。
+  - 模板：`references/client-proposal-template.md`（带占位符，可复用）
+  - 样例：`references/example-client-proposal-blender.md`（榨汁杯填好版，演示成品）
+  - 落地：输出 Markdown，可直接粘贴进飞书 / Notion / Zoom Docs / 腾讯文档；环境若接了对应文档 MCP 可一键生成在线链接。
+
 ## 实时检索
 
 涉及以下内容时用 WebSearch/WebFetch 查最新信息，不要凭记忆：
