@@ -1,0 +1,75 @@
+{
+  "project": "portable-blender-morning",
+  "product": {
+    "name": "Portable Blender 380ml",
+    "ref_images": ["assets/product_front.png", "assets/product_side.png"],
+    "selling_points": ["one charge 15+ blends", "30s blend", "cordless grab & go"]
+  },
+  "character_sheet": "assets/model_sheet.png",
+  "market": "US",
+  "language": "en",
+  "aspect_ratio": "9:16",
+  "bgm": null,
+  "shots": [
+    {
+      "id": 1,
+      "duration": 3,
+      "shot_size": "close-up",
+      "camera": "static, quick cut",
+      "scene": "morning kitchen counter, soft daylight",
+      "action": "one-tap start, smoothie blends in 2s",
+      "voiceover": "A full smoothie before I even brush my teeth.",
+      "subtitle": "A SMOOTHIE IN SECONDS",
+      "first_frame_prompt": "Same model as character_sheet, close-up of hand pressing the Portable Blender 380ml button on a bright morning kitchen counter, smoothie swirling inside, soft daylight, photoreal commercial ad, 9:16 vertical. Product must match product_front.png exactly. No watermark, no text.",
+      "needs_lipsync": false
+    },
+    {
+      "id": 2,
+      "duration": 6,
+      "shot_size": "medium",
+      "camera": "handheld follow",
+      "scene": "messy morning, person checking the time",
+      "action": "person rushing, no time for breakfast",
+      "voiceover": "Mornings are chaos and I never have time for a real breakfast.",
+      "subtitle": "no time for breakfast?",
+      "first_frame_prompt": "Same model as character_sheet, medium shot, rushing in a kitchen looking at watch, warm morning light, photoreal, 9:16. No watermark.",
+      "needs_lipsync": false
+    },
+    {
+      "id": 3,
+      "duration": 11,
+      "shot_size": "close-up to medium",
+      "camera": "push-in and follow",
+      "scene": "kitchen counter",
+      "action": "pour fruit + milk, cap on, blend, twist off and grab to go",
+      "voiceover": "Toss in fruit, milk, done in 30 seconds. Cordless, USB-charged, grab and go.",
+      "subtitle": "30s · cordless · grab & go",
+      "first_frame_prompt": "Same model as character_sheet, pouring strawberries and milk into the Portable Blender 380ml, fruit visible, bright kitchen, photoreal commercial, 9:16. Product matches product_front.png. No watermark.",
+      "needs_lipsync": false
+    },
+    {
+      "id": 4,
+      "duration": 5,
+      "shot_size": "close-up",
+      "camera": "static",
+      "scene": "product detail",
+      "action": "show USB-C port and a week of use montage",
+      "voiceover": "One charge lasts me over 15 blends, been using it all week.",
+      "subtitle": "15+ blends per charge",
+      "first_frame_prompt": "Close-up of the Portable Blender 380ml USB-C charging port, clean background, photoreal product shot, 9:16. Product matches product_side.png. No watermark.",
+      "needs_lipsync": false
+    },
+    {
+      "id": 5,
+      "duration": 3,
+      "shot_size": "medium",
+      "camera": "static",
+      "scene": "person holding product",
+      "action": "point to the cart icon",
+      "voiceover": "Grab yours from the cart before it sells out.",
+      "subtitle": "TAP THE CART",
+      "first_frame_prompt": "Same model as character_sheet, smiling, holding the Portable Blender 380ml and gesturing toward bottom-left, bright background, photoreal, 9:16. No watermark.",
+      "needs_lipsync": false
+    }
+  ]
+}
